@@ -28,6 +28,16 @@ interface CustomProps {
   renderSkeleton?: (field: any) => React.ReactNode;
 }
 
+export enum FormFieldType {
+  INPUT = "input",
+  TEXTAREA = "textarea",
+  CHECKBOX = "checkbox",
+  PHONE_INPUT = "phone_input",
+  DATE_PICKER = "date_picker",
+  SELECT = "select",
+  SKELETON = "skeleton",
+}
+
 const RenderField = ({field, props}: {field: any; props: CustomProps}) => {
   const {fieldType, iconSrc, iconAlt, placeholder} = props;
 
