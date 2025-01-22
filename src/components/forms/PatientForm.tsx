@@ -6,6 +6,11 @@ import {z} from "zod";
 import {Button} from "@/components/ui/button";
 import {Form} from "@/components/ui/form";
 import CustomFormField from "../CustomFormField";
+import SubmitButton from "../SubmitButton";
+import {useState} from "react";
+import {userFormValidation} from "../../lib/validation";
+import {useRouter} from "next/navigation";
+import {createUser} from "../../lib/actions/patient.actions";
 
 export enum FormFieldType {
   INPUT = "input",
@@ -17,23 +22,37 @@ export enum FormFieldType {
   SKELETON = "skeleton",
 }
 
-const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
-  }),
-});
-
 const PatientForm = () => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<z.infer<typeof userFormValidation>>({
+    resolver: zodResolver(userFormValidation),
     defaultValues: {
-      username: "",
+      name: "",
+      email: "",
+      phone: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit({
+    name,
+    email,
+    phone,
+  }: z.infer<typeof userFormValidation>) {
+    setIsLoading(true);
+
+    try {
+      const userData = {name, email, phone};
+      const user = await createUser(userData);
+      if (user) {
+        router.push(`/patient/${user.id}/register`);
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 flex-1'>
@@ -61,7 +80,14 @@ const PatientForm = () => {
           iconSrc='/assets/icons/email.svg'
           iconAlt='email'
         />
-        <Button type='submit'>Submit</Button>
+        <CustomFormField
+          fieldType={FormFieldType.PHONE_INPUT}
+          control={form.control}
+          name='phone'
+          label='Phone Number'
+          placeholder='+(country code) 123 456 789'
+        />
+        <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
       </form>
     </Form>
   );
